@@ -16,7 +16,7 @@ struct fb {
 
 char mem_heap[HEAP_SIZE];
 int bool_init;
-fb*  debut;
+fb *debut;
 
 void mem_init();
 void *mem_alloc(size_t size);

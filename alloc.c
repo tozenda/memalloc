@@ -1,32 +1,33 @@
 #include "alloc.h"
 
 void mem_init(){
-	fb init;
-	init.size = HEAP_SIZE;
-	init.next = NULL;
 	debut = (fb *) mem_heap;
-	*debut = init;
-	bool_init = 1;
+	debut->size = HEAP_SIZE;
+	debut->next = NULL;
 }
 
 void *mem_alloc(size_t size){
-	printf("COUCOUCOCUOCOCUOCUOCUOCUOCUCO %d", debut->size);
-	/*if(bool_init){
-		fb *a = debut;
-		while(a->next!=NULL || a->size>size+2*sizeof(long)){
-			a = a->next;
+
+	fb *a = debut;
+	printf("adresse de a %p\n", &a);
+	printf("size de a %d\n", a->size);
+	printf("size %d\n", size);
+
+	while(a!=NULL){
+
+		if(a->size >= size){
+			printf("c est bon\n");
+
 		}
-		if(a->size>size+2*sizeof(long)){
-			return NULL;
-		}
+
 		else{
+			printf("trouvé de bloc\n");
 			return NULL;
 		}
+
+		a = a->next;
+		printf("bloc pas assez grand\n");
 	}
-	else{
-		printf("memoire pas initialisée");
-		return(NULL);
-	}*/
 }
 
 void mem_free(void *zone, size_t size){
