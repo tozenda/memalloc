@@ -11,12 +11,13 @@
 typedef struct fb fb;
 struct fb {
   size_t size ;
+  void *adresse;
   struct fb *next ;
 } ;
 
 char mem_heap[HEAP_SIZE];
 int bool_init;
-fb *debut;
+fb *debut; // = malloc(HEAP_SIZE);
 
 void mem_init();
 void *mem_alloc(size_t size);
