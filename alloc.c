@@ -32,7 +32,7 @@ void mem_free(void *zone, size_t size){
 	fb *a = debut;
 	fb *a2;
 	int free_done = 0;
-	void *adr_prec;
+	fb *adr_prec;
 
 	/* 4 cas : bloc a libérer entre
 		- deux bloc alloués -> créer un nouveau bloc
@@ -57,17 +57,19 @@ void mem_free(void *zone, size_t size){
 					a->next = a2->next;
 				}
 			}
-
+			break;
 		}
 
-		if(a->adresse-size == zone){ // cas 3
+		if(a->adresse-size == zone){ // cas 3 BUG on modif l adresse de a mais son préc pointe vers une adre fausse du coup
 			printf("on a un bloc après la zone à libérer\n");
 			free_done = 1;
 			a = a->adresse - size;
 			a->adresse -= size;
 			a->size += size;
+			adr_prec->next = a;
+			break;
 		}
-
+		adr_prec = a;
 		a = a->next;
 	}
 
