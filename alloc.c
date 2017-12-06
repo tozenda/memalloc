@@ -11,17 +11,17 @@ void mem_init(){
 }
 
 void *mem_alloc(size_t size){
-	fb *a = debut;
+	fb *adr = debut;
 
-	while(a!=NULL){
+	while(adr!=NULL){
 
-		if(a->size > size+sizeof(fb *)){
+		if(adr->size >= size){		//+sizeof(fb *))
 
-			a->size -= size; // a->adresse += size; pas nécessaire si on alloue à la fin du bloc de mémoire
-			return a->adresse+ a->size;				// pas besoin de retirer la taille car on a deja mofiie a->size
+			adr->size -= size; // a += size; pas nécessaire si on alloue à la fin du bloc de mémoire
+			return (void *)adr + adr->size;				// pas besoin de retirer la taille car on a deja mofiie a->size
 		}
 
-		a = a->next;
+		adr = adr->next;
 	}
 
 	return NULL;
@@ -29,10 +29,10 @@ void *mem_alloc(size_t size){
 
 void mem_free(void *zone, size_t size){
 
-	fb *a = debut;
-	fb *a2;
+	fb *adr = debut;
 	int free_done = 0;
-	fb *adr_prec;
+	fb *adr2 = debut;
+	int sauv_size;
 
 	/* 4 cas : bloc a libérer entre
 		- deux bloc alloués -> créer un nouveau bloc
@@ -40,37 +40,36 @@ void mem_free(void *zone, size_t size){
 			bloc non alloué au dessous -> fusionner les deux blocs
 			2 bloc non alloués -> GIGA fusion
 	*/
-	while(a!=NULL){
-		if(a->adresse < zone){
-			adr_prec = a->adresse;
-		}
+	while(adr!=NULL){
 
-		if(a->adresse+a->size == zone){	// cas 2
+		if((void *) adr + adr->size == zone){	// cas 2
 			printf("on a un bloc avant la zone à libérer\n");
-			a->size += size;
+			adr->size += size;
 			free_done = 1;
-			if(a->next != NULL){
-				a2 = a->next;
-				if (a2->adresse == zone + size){ // cas 4FUSION
+			if(adr->next != NULL){
+				adr2 = adr->next;
+				if ((void *)adr2 == zone + size){ // cas 4FUSION
 					printf("on a un bloc après la zone à libérer 2\n");
-					a->size += a2->size;
-					a->next = a2->next;
+					adr->size += adr2->size;
+					adr->next = adr2->next;
 				}
 			}
 			break;
 		}
 
-		if(a->adresse-size == zone){ // cas 3 BUG on modif l adresse de a mais son préc pointe vers une adre fausse du coup
-			printf("on a un bloc après la zone à libérer\n");
+		printf("size initial %d\n", adr->size);
+		if((void *)adr - size == zone){ // cas 3 BUG on modif l adresse de a mais son préc pointe vers une adre fausse du coup
 			free_done = 1;
-			a = a->adresse - size;
-			a->adresse -= size;
-			a->size += size;
-			adr_prec->next = a;
+			fb *new_bloc;
+			new_bloc = zone;
+			new_bloc->size = size + adr->size;
+			adr2->next = new_bloc;
+			new_bloc->next = adr->next;
 			break;
 		}
-		adr_prec = a;
-		a = a->next;
+
+		adr2 = adr;
+		adr = adr->next;
 	}
 
 	if(!free_done){ // cas 1
@@ -78,23 +77,28 @@ void mem_free(void *zone, size_t size){
 
 		fb *new_bloc;
 		new_bloc = zone;
-		new_bloc->adresse = zone;
 		new_bloc->size = size;
-		a = debut;
+		adr = debut;
 
-		while(a->adresse!=adr_prec){
-			a = a->next;
+		while(adr!=NULL){
+			if ((void *)adr < zone){
+				adr2 = adr;
+				adr = adr->next;
+			}
+			else{
+				break;
+			}
 		}
-		new_bloc->next = a->next;
-		a->next = new_bloc;
+		new_bloc->next = adr;
+		adr2->next = new_bloc;
 	}
 }
 
 void mem_show(void (*print)(void *zone, size_t size)){
-	fb *a = debut;
+	fb *adr = debut;
 
-	while(a!=NULL){
-		print(a->adresse, a->size);
-		a=a->next;
+	while(adr!=NULL){
+		print((void *)adr, adr->size);
+		adr=adr->next;
 	}
 }
