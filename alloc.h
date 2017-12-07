@@ -11,7 +11,6 @@
 typedef struct fb fb;
 struct fb {
   size_t size ;
-  void *adresse;
   struct fb *next ;
 } ;
 

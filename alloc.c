@@ -1,17 +1,24 @@
+/******************************************************************************/
+/*									      */
+/*		Auteurs : FERREIRA Joffrey & OZENDA Thomas 					*/
+/*									      */
+/******************************************************************************/
+
 #include "alloc.h"
+#define max(a,b) ((a) > (b) ? (a) : (b))
 
 void mem_init(){
 	debut = (fb *) mem_heap;
 	debut->size = HEAP_SIZE;
 	debut->next = NULL;
-	debut->adresse = mem_heap;
-	// printf("adresse de debut %p\n", debut);
-	// printf("adresse de memheap %p\n", mem_heap);
-	// printf("adresse de debut struct %p\n", debut->adresse);
 }
 
 void *mem_alloc(size_t size){
 	fb *adr = debut;
+
+	printf("size avant : %lx\n", size);
+	size = max(sizeof(fb *), size); // si on veut allouer un bloc plus petit que l entete on alloue une zone plus grande
+	printf("size apres : %lx\n", size);
 
 	while(adr!=NULL){
 
@@ -32,24 +39,24 @@ void mem_free(void *zone, size_t size){
 	fb *adr = debut;
 	int free_done = 0;
 	fb *adr2 = debut;
-	int sauv_size;
 
-	/* 4 cas : bloc a libérer entre
-		- deux bloc alloués -> créer un nouveau bloc
+	size = max(sizeof(fb *), size);
+			/* 4 cas : bloc a libérer entre
+		- deux bloc alloués / limite mémoire -> créer un nouveau bloc
 			bloc non alloué au dessus -> le rajouter au bloc du haut
 			bloc non alloué au dessous -> fusionner les deux blocs
 			2 bloc non alloués -> GIGA fusion
 	*/
-	while(adr!=NULL){
+		while (adr != NULL){
 
 		if((void *) adr + adr->size == zone){	// cas 2
-			printf("on a un bloc avant la zone à libérer\n");
+			// printf("on a un bloc avant la zone à libérer\n");
 			adr->size += size;
 			free_done = 1;
 			if(adr->next != NULL){
 				adr2 = adr->next;
-				if ((void *)adr2 == zone + size){ // cas 4FUSION
-					printf("on a un bloc après la zone à libérer 2\n");
+				if ((void *)adr2 == zone + size){ // cas 4 FUSION
+					// printf("on a un bloc après la zone à libérer 2\n");
 					adr->size += adr2->size;
 					adr->next = adr2->next;
 				}
@@ -57,8 +64,8 @@ void mem_free(void *zone, size_t size){
 			break;
 		}
 
-		printf("size initial %d\n", adr->size);
-		if((void *)adr - size == zone){ // cas 3 BUG on modif l adresse de a mais son préc pointe vers une adre fausse du coup
+		// printf("size initial %d\n", adr->size);
+		if((void *)adr - size == zone){ // cas 3
 			free_done = 1;
 			fb *new_bloc;
 			new_bloc = zone;
@@ -73,7 +80,7 @@ void mem_free(void *zone, size_t size){
 	}
 
 	if(!free_done){ // cas 1
-		printf("Le bloc est entre deux blocs\n");
+		// printf("Le bloc est entre deux blocs\n");
 
 		fb *new_bloc;
 		new_bloc = zone;
